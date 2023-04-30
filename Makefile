@@ -2,12 +2,12 @@
 # and can use its language.
 ifneq ($(KERNELRELEASE),)
     $(info [i]: KERNELRELEASE is set == $(KERNELRELEASE))
-    ccflags-y := -DENABLE_DEBUG
-    pepe-objs := main.o
-
     # A makefile symbol used by the kernel build system to determine which
     # modules should be built in the current directory.
     obj-m := pepe.o
+
+    ccflags-y := -std=gnu11 -DENABLE_DEBUG
+    pepe-objs := main.o
 
 # Otherwise we were called directly from the command line; invoke the kernel
 # build system.

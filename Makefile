@@ -3,7 +3,7 @@
 ifneq ($(KERNELRELEASE),)
     $(info [i]: KERNELRELEASE is set == $(KERNELRELEASE))
     ccflags-y := -DENABLE_DEBUG
-    module-objs := main.o
+    pepe-objs := main.o
 
     # A makefile symbol used by the kernel build system to determine which
     # modules should be built in the current directory.
@@ -27,3 +27,5 @@ modules:
 clean:
 	$(info [i]: clean)
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) clean
+
+endif

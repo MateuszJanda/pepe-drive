@@ -128,7 +128,7 @@ static int __init pepe_init(void)
 	err = alloc_chrdev_region(&dev_num, pepe_minor, PEPE_NUM_OF_DEVS,
 				  PEPE_MODULE_NAME);
 
-	if (!err) {
+	if (err < 0) {
 		pr_debug("Error(%d): alloc_chrdev_region() failed on pepe\n",
 			 err);
 		goto fail;
@@ -151,7 +151,7 @@ static int __init pepe_init(void)
 		// Make this char device usable in userspace
 		dev_num = MKDEV(pepe_major, pepe_minor + i);
 		err = cdev_add(&pepe_devs[i]->cdev, dev_num, 1);
-		if (err) {
+		if (err < 0) {
 			pr_debug("Error(%d): Adding %s%d error\n", err,
 				 PEPE_MODULE_NAME, i);
 			kfree(pepe_devs[i]);

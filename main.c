@@ -13,33 +13,66 @@ MODULE_DESCRIPTION("A simple char device driver that provides ANSI image.");
 static int pepe_major = 0;
 static int pepe_minor = 0;
 
+static const uint8_t pepe_data[] = {0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68};
+
 // Internal device specific structure.
 struct pepe_dev {
-	// record how many blocks now in the list
-	int block_counter;
 	struct mutex mutex;
 	// Char device structure.
 	struct cdev cdev;
-	// list of storage blocks
-	struct list_head block_list;
 };
 
 static struct pepe_dev *pepe_devs[PEPE_NUM_OF_DEVS] = { NULL };
 
 int pepe_open(struct inode *inode, struct file *filp)
 {
-	// Device information.
+	// Device information
 	struct pepe_dev *dev =
 		container_of(inode->i_cdev, struct pepe_dev, cdev);
 	filp->private_data = dev;
 
-	// Nothing else is needed, pepe is read only device.
+	// Nothing else is needed, pepe is read only device
 	return 0;
+}
+
+ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
+		   loff_t *f_pos)
+{
+	struct pepe_dev *dev = filp->private_data;
+	ssize_t retval = 0;
+
+	if (mutex_lock_interruptible(&dev->mutex)) {
+		return -ERESTARTSYS;
+	}
+
+	if (*f_pos >= sizeof(pepe_data)) {
+		retval = 0;
+		goto end_of_file;
+	}
+
+	if (*f_pos + count > sizeof(pepe_data)) {
+		count = sizeof(pepe_data) - *f_pos;
+	}
+
+	if (copy_to_user(buff, pepe_data + *f_pos, count)) {
+		retval = -EFAULT;
+		goto fail_copy_to_user;
+	}
+
+	retval = count;
+	*f_pos += count;
+
+end_of_file:
+fail_copy_to_user:
+	pr_debug("pepe_read pos = %lld, count %lu bytes\n", *f_pos, count);
+
+	mutex_unlock(&dev->mutex);
+	return retval;
 }
 
 int pepe_release(struct inode *inode, struct file *filp)
 {
-	// No hardware to shut down.
+	// No hardware to shut down
 	return 0;
 }
 
@@ -53,6 +86,7 @@ static struct file_operations pepe_fops = {
 static void __init peep_fail_cleanup(void)
 {
 	dev_t dev_num = 0;
+	pr_debug("%s() is invoked\n", __FUNCTION__);
 
 	// Deallocated device resources.
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
@@ -62,7 +96,7 @@ static void __init peep_fail_cleanup(void)
 		}
 	}
 
-	// Unregister char device number.
+	// Unregister char device number
 	if (pepe_major != 0) {
 		dev_num = MKDEV(pepe_major, pepe_minor);
 		unregister_chrdev_region(dev_num, PEPE_NUM_OF_DEVS);
@@ -71,13 +105,10 @@ static void __init peep_fail_cleanup(void)
 
 static void __init pepe_setup_dev(struct pepe_dev *dev)
 {
-	// Setup pepe_dev.
-	dev->block_counter = 0;
-
-	INIT_LIST_HEAD(&dev->block_list);
+	// INIT_LIST_HEAD(&dev->block_list);
 	mutex_init(&dev->mutex);
 
-	// Setup char dev.
+	// Setup char dev
 	cdev_init(&dev->cdev, &pepe_fops);
 	dev->cdev.owner = THIS_MODULE;
 }
@@ -91,7 +122,7 @@ static int __init pepe_init(void)
 
 	printk(KERN_WARNING PEPE_MODULE_NAME " is loaded\n");
 
-	// Dynamically allocate device number.
+	// Dynamically allocate device number
 	err = alloc_chrdev_region(&dev_num, pepe_minor, PEPE_NUM_OF_DEVS,
 				  PEPE_MODULE_NAME);
 
@@ -128,7 +159,7 @@ static int __init pepe_init(void)
 		}
 	}
 
-	// All or nothing. In case of fail make cleanup.
+	// All or nothing. In case of fail make cleanup
 	if (fail_kmalloc || fail_cdev_add) {
 		goto fail;
 	}
@@ -145,13 +176,13 @@ static void __exit pepe_exit(void)
 
 	printk(KERN_WARNING PEPE_MODULE_NAME " unloaded\n");
 
-	// Deallocated device resources.
+	// Deallocated device resources
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
 		cdev_del(&pepe_devs[i]->cdev);
 		kfree(pepe_devs[i]);
 	}
 
-	// Unregister char device number.
+	// Unregister char device number
 	unregister_chrdev_region(dev_num, PEPE_NUM_OF_DEVS);
 }
 

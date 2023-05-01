@@ -45,6 +45,7 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 	ssize_t retval = 0;
 
 	pr_debug("pepe call: %s()\n", __FUNCTION__);
+	pr_debug("pepe_read() request, pos = %lld, count = %lu\n", *f_pos, count);
 
 	if (mutex_lock_interruptible(&dev->mutex)) {
 		return -ERESTARTSYS;
@@ -69,7 +70,7 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 
 end_of_file:
 fail_copy_to_user:
-	pr_debug("pepe_read() pos = %lld, count = %lu\n", *f_pos, count);
+	pr_debug("pepe_read() set, pos = %lld, count = %lu\n", *f_pos, count);
 
 	mutex_unlock(&dev->mutex);
 	return retval;

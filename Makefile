@@ -26,6 +26,6 @@ modules:
 .PHONY: clean
 clean:
 	$(info [i]: clean)
-	$(MAKE) -C $(KERNELDIR) M=$(PWD) clean
+	rm -rf *.o *.ko *.order *.symvers *.mod *.mod.c
 
 endif

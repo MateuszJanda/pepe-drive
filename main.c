@@ -32,6 +32,8 @@ int pepe_open(struct inode *inode, struct file *filp)
 		container_of(inode->i_cdev, struct pepe_dev, cdev);
 	filp->private_data = dev;
 
+	pr_debug("pepe call: %s()\n", __FUNCTION__);
+
 	// Nothing else is needed, pepe is read only device
 	return 0;
 }
@@ -41,6 +43,8 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 {
 	struct pepe_dev *dev = filp->private_data;
 	ssize_t retval = 0;
+
+	pr_debug("pepe call: %s()\n", __FUNCTION__);
 
 	if (mutex_lock_interruptible(&dev->mutex)) {
 		return -ERESTARTSYS;
@@ -65,7 +69,7 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 
 end_of_file:
 fail_copy_to_user:
-	pr_debug("pepe_read pos = %lld, count %lu bytes\n", *f_pos, count);
+	pr_debug("pepe_read() pos = %lld, count %lu bytes\n", *f_pos, count);
 
 	mutex_unlock(&dev->mutex);
 	return retval;
@@ -73,6 +77,8 @@ fail_copy_to_user:
 
 int pepe_release(struct inode *inode, struct file *filp)
 {
+	pr_debug("pepe call: %s()\n", __FUNCTION__);
+
 	// No hardware to shut down
 	return 0;
 }
@@ -87,7 +93,7 @@ static struct file_operations pepe_fops = {
 static void __init peep_fail_cleanup(void)
 {
 	dev_t dev_num = 0;
-	pr_debug("%s() is invoked\n", __FUNCTION__);
+	pr_debug("pepe call: %s()\n", __FUNCTION__);
 
 	// Deallocated device resources.
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
@@ -106,7 +112,7 @@ static void __init peep_fail_cleanup(void)
 
 static void __init pepe_setup_dev(struct pepe_dev *dev)
 {
-	// INIT_LIST_HEAD(&dev->block_list);
+	pr_debug("pepe call: %s()\n", __FUNCTION__);
 	mutex_init(&dev->mutex);
 
 	// Setup char dev
@@ -122,7 +128,7 @@ static int __init pepe_init(void)
 	dev_t dev_num = 0;
 
 	printk(KERN_WARNING PEPE_MODULE_NAME " is loaded\n");
-	pr_debug("%s() is invoked\n", __FUNCTION__);
+	pr_debug("pepe call: %s()\n", __FUNCTION__);
 
 	// Dynamically allocate device number
 	err = alloc_chrdev_region(&dev_num, pepe_minor, PEPE_NUM_OF_DEVS,
@@ -177,6 +183,7 @@ static void __exit pepe_exit(void)
 	dev_t dev_num = MKDEV(pepe_major, pepe_minor);
 
 	printk(KERN_WARNING PEPE_MODULE_NAME " unloaded\n");
+	pr_debug("pepe call: %s()\n", __FUNCTION__);
 
 	// Deallocated device resources
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {

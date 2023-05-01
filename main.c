@@ -3,6 +3,8 @@
 #include <linux/cdev.h>
 #include <linux/fs.h>
 
+#include "data.h"
+
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_AUTHOR("Mateusz Janda");
 MODULE_DESCRIPTION("A simple char device driver that provides ANSI image.");
@@ -12,9 +14,6 @@ MODULE_DESCRIPTION("A simple char device driver that provides ANSI image.");
 
 static int pepe_major = 0;
 static int pepe_minor = 0;
-
-static const uint8_t pepe_data[] = { 0x61, 0x62, 0x63, 0x64,
-				     0x65, 0x66, 0x67, 0x68 };
 
 // Internal device specific structure.
 struct pepe_dev {

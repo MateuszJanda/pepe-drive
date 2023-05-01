@@ -27,6 +27,7 @@ struct pepe_dev {
 static struct pepe_dev *pepe_devs[PEPE_NUM_OF_DEVS] = {0};
 
 static void __init fail_init_cleanup(void) {
+	dev_t dev_num;
 
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
 		if (!pepe_devs[i]) {
@@ -34,28 +35,32 @@ static void __init fail_init_cleanup(void) {
 		}
 	}
 
+	if (pepe_major == 0 && pepe_minor == 0) {
+		dev_num = MKDEV(pepe_major, pepe_minor);
+		unregister_chrdev_region(dev_num, PEPE_NUM_OF_DEVS);
+	}
 }
-
 
 static int __init m_init(void)
 {
 	int err = -ENOMEM;
 	bool fail_kmalloc = false;
-	dev_t devno;
+	dev_t dev_num = 0;
 
 	printk(KERN_WARNING PEPE_MODULE_NAME " is loaded\n");
 
-	// Alloc device number
-	err = alloc_chrdev_region(&devno, pepe_minor, PEPE_NUM_OF_DEVS,
+	// Dynamically allocate device number
+	err = alloc_chrdev_region(&dev_num, pepe_minor, PEPE_NUM_OF_DEVS,
 				  PEPE_MODULE_NAME);
 
-	// pr_debug("%d %d\n", devno, pepe_major);
-
 	if (!err) {
+		pr_debug("Error(%d): alloc_chrdev_region failed on pepe\n", err);
 		goto fail;
 	}
+	pepe_major = MAJOR(dev_num);
 
-	// err = -ENOMEM;
+	// Allocate devices
+	err = -ENOMEM;
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
 		pepe_devs[i] = kmalloc(sizeof(struct pepe_dev), GFP_KERNEL);
 		if (!pepe_devs[i]) {
@@ -78,11 +83,17 @@ fail:
 
 static void __exit m_exit(void)
 {
-	dev_t devno;
-	devno = MKDEV(pepe_major, pepe_minor);
+	dev_t dev_num = MKDEV(pepe_major, pepe_minor);
 
-	printk(KERN_ALERT "Goodbye, cruel world\n");
-	unregister_chrdev_region(devno, PEPE_NUM_OF_DEVS);
+	printk(KERN_WARNING PEPE_MODULE_NAME " unloaded\n");
+
+	// Deallocated resources
+	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
+		kfree(pepe_devs[i]);
+	}
+
+
+	unregister_chrdev_region(dev_num, PEPE_NUM_OF_DEVS);
 }
 
 module_init(m_init);

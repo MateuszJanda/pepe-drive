@@ -139,7 +139,7 @@ static int __init pepe_init(void)
 	err = -ENOMEM;
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
 		pepe_devs[i] = kmalloc(sizeof(struct pepe_dev), GFP_KERNEL);
-		if (pepe_devs[i] != NULL) {
+		if (pepe_devs[i] == NULL) {
 			pr_debug("Error(%d): kmalloc() failed on pepe%d\n", err,
 				 i);
 			fail_kmalloc = true;

@@ -131,7 +131,7 @@ static int __init pepe_init(void)
 	bool fail_cdev_add = false;
 	dev_t dev_num = 0;
 
-	printk(KERN_WARNING PEPE_MODULE_NAME " is loaded\n");
+	printk(KERN_WARNING PEPE_MODULE_NAME " loaded\n");
 	pr_debug("pepe call: %s()\n", __FUNCTION__);
 
 	// Dynamically allocate device number

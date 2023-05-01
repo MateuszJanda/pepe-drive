@@ -8,26 +8,22 @@ group=0
 function load() {
     echo "Function load()"
     insmod ./$module.ko $* || exit 1
-    echo "buka0"
 
     rm -f /dev/${device}0
-    echo "buka1"
 
     major=$(awk -v device="$device" '$2==device {print $1}' /proc/devices)
     mknod /dev/${device}0 c $major 0
-    echo "buka2"
 
     chgrp $group /dev/${device}0
     chmod $mode /dev/${device}0
-    echo "Module ${module}.ko loaded."
+    echo "Module ${module}.ko loaded"
 }
 
 function unload() {
     echo "Function unload()"
     rm -f /dev/${device}0
-    echo "asdf $module"
     rmmod $module || exit 1
-    # echo "Module ${module}.ko removed"
+    echo "Module ${module}.ko removed"
 }
 
 arg=${1:-""}

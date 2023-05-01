@@ -182,7 +182,6 @@ static void __exit pepe_exit(void)
 {
 	dev_t dev_num = MKDEV(pepe_major, pepe_minor);
 
-	printk(KERN_WARNING PEPE_MODULE_NAME " unloaded\n");
 	pr_debug("pepe call: %s()\n", __FUNCTION__);
 
 	// Deallocated device resources
@@ -193,6 +192,7 @@ static void __exit pepe_exit(void)
 
 	// Unregister char device number
 	unregister_chrdev_region(dev_num, PEPE_NUM_OF_DEVS);
+	printk(KERN_WARNING PEPE_MODULE_NAME " unloaded\n");
 }
 
 module_init(pepe_init);

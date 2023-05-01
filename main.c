@@ -13,7 +13,8 @@ MODULE_DESCRIPTION("A simple char device driver that provides ANSI image.");
 static int pepe_major = 0;
 static int pepe_minor = 0;
 
-static const uint8_t pepe_data[] = {0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68};
+static const uint8_t pepe_data[] = { 0x61, 0x62, 0x63, 0x64,
+				     0x65, 0x66, 0x67, 0x68 };
 
 // Internal device specific structure.
 struct pepe_dev {
@@ -36,7 +37,7 @@ int pepe_open(struct inode *inode, struct file *filp)
 }
 
 ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
-		   loff_t *f_pos)
+		  loff_t *f_pos)
 {
 	struct pepe_dev *dev = filp->private_data;
 	ssize_t retval = 0;

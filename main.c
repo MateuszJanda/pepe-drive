@@ -122,6 +122,7 @@ static int __init pepe_init(void)
 	dev_t dev_num = 0;
 
 	printk(KERN_WARNING PEPE_MODULE_NAME " is loaded\n");
+	pr_debug("%s() is invoked\n", __FUNCTION__);
 
 	// Dynamically allocate device number
 	err = alloc_chrdev_region(&dev_num, pepe_minor, PEPE_NUM_OF_DEVS,

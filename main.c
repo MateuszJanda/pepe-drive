@@ -69,7 +69,7 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 
 end_of_file:
 fail_copy_to_user:
-	pr_debug("pepe_read() pos = %lld, count %lu bytes\n", *f_pos, count);
+	pr_debug("pepe_read() pos = %lld, count = %lu\n", *f_pos, count);
 
 	mutex_unlock(&dev->mutex);
 	return retval;

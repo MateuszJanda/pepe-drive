@@ -6,7 +6,7 @@ ifneq ($(KERNELRELEASE),)
     # modules should be built in the current directory.
     obj-m := pepe.o
 
-    ccflags-y := -std=gnu11 -DENABLE_DEBUG -DDEBUG
+    ccflags-y := -std=gnu11 -DDEBUG
     pepe-objs := main.o
 
 # Otherwise we were called directly from the command line; invoke the kernel

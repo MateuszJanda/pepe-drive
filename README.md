@@ -1,6 +1,6 @@
 ## pepe-drive
 
-Toy project. Simple char device with only read access that provides ANSI image. Probably not secure, so use on your own risk.
+Toy project. Simple char device Linux driver with only read access that provides ANSI image. Probably not secure, so use it on your own risk.
 
 ```bash
 $ make

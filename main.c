@@ -7,7 +7,7 @@
 
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_AUTHOR("Mateusz Janda");
-MODULE_DESCRIPTION("A simple char device driver that provides ANSI image.");
+MODULE_DESCRIPTION("A simple Linux driver for in-memory char device.");
 
 #define PEPE_MODULE_NAME "pepe"
 #define PEPE_NUM_OF_DEVS 1

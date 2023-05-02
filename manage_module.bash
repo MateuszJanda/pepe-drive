@@ -2,7 +2,7 @@
 
 module="pepe"
 device="pepe"
-mode="666"
+mode="444"
 group=0
 
 function load() {

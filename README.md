@@ -6,7 +6,7 @@ Toy project. Simple Linux driver for in-memory char device. Allow read ANSI imag
 $ make
 $ sudo ./manage_module.bash load
 $ ls -al /dev/pepe0
-$ crw-rw-rw- 1 root root 509, 0 maj  2 09:46 /dev/pepe0
+  cr--r--r-- 1 root root 509, 0 maj  2 09:51 /dev/pepe0
 
 $ echo -e $(cat /dev/pepe0)
 $ sudo dmesg | tail -20

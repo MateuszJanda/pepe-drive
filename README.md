@@ -1,14 +1,15 @@
 ## pepe-drive
 
-Toy project. Simple char device Linux driver with only read access that provides ANSI image. Probably not secure, so use it on your own risk.
+Toy project. Simple Linux driver for in-memory char device. Allow read ANSI image from `/dev/pepe0`. Probably not secure, so use it on your own risk.
 
 ```bash
 $ make
 $ sudo ./manage_module.bash load
+$ ls -al /dev/pepe0
+$ crw-rw-rw- 1 root root 509, 0 maj  2 09:46 /dev/pepe0
 
 $ echo -e $(cat /dev/pepe0)
 $ sudo dmesg | tail -20
-
 
 $ sudo ./manage_module.bash unload
 ```

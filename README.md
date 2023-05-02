@@ -16,7 +16,7 @@ $ sudo ./manage_module.bash unload
 
 ### Visual Studio Code and clangd
 
-After generating `compile_commands.json` on linux source code, clangd extension can be used.
+After generating `compile_commands.json` on Linux source code, clangd extension can be used.
 ```bash
 $ cd ~/linux-kernel
 $ ./scripts/clang-tools/gen_compile_commands.py

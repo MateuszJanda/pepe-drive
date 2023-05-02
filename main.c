@@ -15,10 +15,10 @@ MODULE_DESCRIPTION("A simple char device driver that provides ANSI image.");
 static int pepe_major = 0;
 static int pepe_minor = 0;
 
-// Internal device specific structure.
+// Device specific structure
 struct pepe_dev {
 	struct mutex mutex;
-	// Char device structure.
+	// Char device structure
 	struct cdev cdev;
 };
 
@@ -144,7 +144,7 @@ static int __init pepe_init(void)
 	}
 	pepe_major = MAJOR(dev_num);
 
-	// Allocate devices.
+	// Allocate devices resources
 	err = -ENOMEM;
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
 		pepe_devs[i] = kmalloc(sizeof(struct pepe_dev), GFP_KERNEL);
@@ -157,7 +157,7 @@ static int __init pepe_init(void)
 
 		pepe_setup_dev(pepe_devs[i]);
 
-		// Make this char device usable in userspace
+		// Make this char device usable in user-space
 		dev_num = MKDEV(pepe_major, pepe_minor + i);
 		err = cdev_add(&pepe_devs[i]->cdev, dev_num, 1);
 		if (err < 0) {

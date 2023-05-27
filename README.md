@@ -14,6 +14,10 @@ $ sudo dmesg | tail -20
 $ sudo ./manage_module.bash unload
 ```
 
+<p align="center">
+<img src="./screenshot.png"/>
+</p>
+
 ### Visual Studio Code and clangd
 
 After generating `compile_commands.json` on Linux source code, clangd extension can be used.

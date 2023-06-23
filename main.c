@@ -2,6 +2,7 @@
 #include <linux/module.h>
 #include <linux/cdev.h>
 #include <linux/fs.h>
+#include <linux/time.h>
 
 #include "data.h"
 
@@ -17,13 +18,39 @@ static int pepe_minor = 0;
 
 // Device specific structure
 struct pepe_dev {
-	// I think currently is not needed - driver only read data
+	// I think currently it's not needed because driver only read data
 	struct mutex mutex;
 	// Char device structure
 	struct cdev cdev;
 };
 
+// Array storing pepe devices
 static struct pepe_dev *pepe_devs[PEPE_NUM_OF_DEVS] = { NULL };
+
+// Handling "wednesday" parameter
+static int pepe_check_day(char *buffer, const struct kernel_param *kp)
+{
+	struct timespec64 now;
+	struct tm time;
+	int len;
+
+	ktime_get_real_ts64(&now);
+	time64_to_tm(now.tv_sec, 0, &time);
+
+	if (time.tm_wday == 3) {
+		len = snprintf(buffer, PAGE_SIZE,
+			       "It is Wednesday my Dudes.\n");
+	} else {
+		len = snprintf(buffer, PAGE_SIZE, "Not Wednesday, pepe sad.\n");
+	}
+
+	// Plus terminating null character
+	return len < PAGE_SIZE ? len + 1 : -EINVAL;
+}
+
+static const struct kernel_param_ops pepe_wednesday_ops = {
+	.get = pepe_check_day
+};
 
 int pepe_open(struct inode *inode, struct file *filp)
 {
@@ -201,5 +228,7 @@ static void __exit pepe_exit(void)
 	printk(KERN_WARNING PEPE_MODULE_NAME " unloaded\n");
 }
 
+// Parameter (/sys/module/pepe/parameters/wednesday)
+module_param_cb(wednesday, &pepe_wednesday_ops, NULL, 0444);
 module_init(pepe_init);
 module_exit(pepe_exit);

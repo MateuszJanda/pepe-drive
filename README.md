@@ -2,21 +2,27 @@
 
 Toy project. A simple Linux driver for in-memory char device. Allow read ANSI image from `/dev/pepe0`. Probably not secure, so use it on your own risk.
 
+<p align="center">
+<img src="./screenshot.png"/>
+</p>
+
 ```bash
+# Load module (driver)
 $ make
 $ sudo ./manage_module.bash load
 $ ls -al /dev/pepe0
   cr--r--r-- 1 root root 509, 0 maj  2 09:51 /dev/pepe0
 
+# Read device content
 $ echo -e $(cat /dev/pepe0)
 $ sudo dmesg | tail -20
 
+# Check module parameter
+$ cat /sys/module/pepe/parameters/wednesday
+
+# Unload module (driver)
 $ sudo ./manage_module.bash unload
 ```
-
-<p align="center">
-<img src="./screenshot.png"/>
-</p>
 
 ### Visual Studio Code and clangd
 

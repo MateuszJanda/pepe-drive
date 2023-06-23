@@ -17,6 +17,7 @@ static int pepe_minor = 0;
 
 // Device specific structure
 struct pepe_dev {
+	// I think currently is not needed - driver only read data
 	struct mutex mutex;
 	// Char device structure
 	struct cdev cdev;

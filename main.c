@@ -31,7 +31,7 @@ int pepe_open(struct inode *inode, struct file *filp)
 		container_of(inode->i_cdev, struct pepe_dev, cdev);
 	filp->private_data = dev;
 
-	pr_debug("pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
 
 	// Nothing else is needed, pepe is read only device
 	return 0;
@@ -43,9 +43,9 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 	struct pepe_dev *dev = filp->private_data;
 	ssize_t retval = 0;
 
-	pr_debug("pepe call: %s()\n", __FUNCTION__);
-	pr_debug("pepe_read() requested, f_pos = %lld, count = %lu\n", *f_pos,
-		 count);
+	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe_read() requested, f_pos = %lld, count = %lu\n",
+	       *f_pos, count);
 
 	if (mutex_lock_interruptible(&dev->mutex)) {
 		return -ERESTARTSYS;
@@ -71,8 +71,8 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 
 end_of_file:
 fail_copy_to_user:
-	pr_debug("pepe_read() delivered, f_pos = %lld, count = %lu\n", *f_pos,
-		 count);
+	printk(KERN_DEBUG "pepe_read() delivered, f_pos = %lld, count = %lu\n",
+	       *f_pos, count);
 
 	mutex_unlock(&dev->mutex);
 	return retval;
@@ -80,7 +80,7 @@ fail_copy_to_user:
 
 int pepe_release(struct inode *inode, struct file *filp)
 {
-	pr_debug("pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
 
 	// No hardware to shut down
 	return 0;
@@ -96,7 +96,7 @@ static struct file_operations pepe_fops = {
 static void __init peep_fail_cleanup(void)
 {
 	dev_t dev_num = 0;
-	pr_debug("pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
 
 	// Deallocated device resources.
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
@@ -115,7 +115,7 @@ static void __init peep_fail_cleanup(void)
 
 static void __init pepe_setup_dev(struct pepe_dev *dev)
 {
-	pr_debug("pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
 	mutex_init(&dev->mutex);
 
 	// Setup char dev
@@ -131,15 +131,16 @@ static int __init pepe_init(void)
 	dev_t dev_num = 0;
 
 	printk(KERN_WARNING PEPE_MODULE_NAME " loaded\n");
-	pr_debug("pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
 
 	// Dynamically allocate device number
 	err = alloc_chrdev_region(&dev_num, pepe_minor, PEPE_NUM_OF_DEVS,
 				  PEPE_MODULE_NAME);
 
 	if (err < 0) {
-		pr_debug("Error(%d): alloc_chrdev_region() failed on pepe\n",
-			 err);
+		printk(KERN_DEBUG
+		       "Error(%d): alloc_chrdev_region() failed on pepe\n",
+		       err);
 		goto fail;
 	}
 	pepe_major = MAJOR(dev_num);
@@ -149,8 +150,9 @@ static int __init pepe_init(void)
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
 		pepe_devs[i] = kmalloc(sizeof(struct pepe_dev), GFP_KERNEL);
 		if (pepe_devs[i] == NULL) {
-			pr_debug("Error(%d): kmalloc() failed on pepe%d\n", err,
-				 i);
+			printk(KERN_DEBUG
+			       "Error(%d): kmalloc() failed on pepe%d\n",
+			       err, i);
 			fail_kmalloc = true;
 			break;
 		}
@@ -161,8 +163,8 @@ static int __init pepe_init(void)
 		dev_num = MKDEV(pepe_major, pepe_minor + i);
 		err = cdev_add(&pepe_devs[i]->cdev, dev_num, 1);
 		if (err < 0) {
-			pr_debug("Error(%d): Adding %s%d error\n", err,
-				 PEPE_MODULE_NAME, i);
+			printk(KERN_DEBUG "Error(%d): Adding %s%d error\n", err,
+			       PEPE_MODULE_NAME, i);
 			kfree(pepe_devs[i]);
 			pepe_devs[i] = NULL;
 			fail_cdev_add = true;
@@ -185,7 +187,7 @@ static void __exit pepe_exit(void)
 {
 	dev_t dev_num = MKDEV(pepe_major, pepe_minor);
 
-	pr_debug("pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
 
 	// Deallocated device resources
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {

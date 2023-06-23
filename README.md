@@ -20,12 +20,12 @@ $ sudo ./manage_module.bash unload
 
 ### Visual Studio Code and clangd
 
-After generating `compile_commands.json` on Linux source code, clangd extension can be used.
+After generating `compile_commands.json` for Linux source code, clangd extension can be used.
 ```bash
 $ cd ~/linux-kernel
 $ ./scripts/clang-tools/gen_compile_commands.py
 
-$ cp compile_commands.json ~/linux-device-drivers
+$ cp ~/linux-kernel/compile_commands.json ~/pepe-drive
 ```
 
 Then reset Visual Studio Code.
@@ -33,7 +33,7 @@ Then reset Visual Studio Code.
 ### clang-format
 
 ```bash
-$ cp ~/linux-kernel/.clang-format ~/linux-device-drivers/
+$ ln -s ~/linux-kernel/.clang-format .
 
 $ clang-format -style=file:.clang-format -i *.c
 $ clang-format -style=file:.clang-format -i *.h

@@ -15,7 +15,7 @@ MODULE_DESCRIPTION("A simple Linux driver for in-memory char device.");
 #define PEPE_NUM_OF_DEVS 1
 
 #define PEPE_IOCTL_IOC_MAGIC 'k'
-#define PEPE_IOCTL_CMD_IS_WEDNESDAY _IOR(PEPE_IOCTL_IOC_MAGIC, 0, int)
+#define PEPE_IOCTL_CMD_WEEK_DAY _IOR(PEPE_IOCTL_IOC_MAGIC, 0, int)
 #define PEPE_IOCTL_MAXNR 0
 
 static int pepe_major = 0;
@@ -117,8 +117,6 @@ fail_copy_to_user:
 
 long pepe_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
-	long retval = 0;
-
 	struct timespec64 now;
 	struct tm time;
 
@@ -136,21 +134,15 @@ long pepe_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		return -ENOTTY;
 	}
 
-	if (cmd == PEPE_IOCTL_CMD_IS_WEDNESDAY) {
+	if (cmd == PEPE_IOCTL_CMD_WEEK_DAY) {
 		ktime_get_real_ts64(&now);
 		time64_to_tm(now.tv_sec, 0, &time);
-		if (time.tm_wday == 3) {
-			printk(KERN_DEBUG
-			       "pepe PEPE_IOCTL_CMD_IS_WEDNESDAY 1 (True).\n");
-			return 1;
-		} else {
-			printk(KERN_DEBUG
-			       "pepe PEPE_IOCTL_CMD_IS_WEDNESDAY 0 (False).\n");
-			return 0;
-		}
+		printk(KERN_DEBUG "pepe PEPE_IOCTL_CMD_WEEK_DAY: %d.\n",
+		       time.tm_wday);
+		return time.tm_wday;
 	}
 
-	return retval;
+	return -ENOTTY;
 }
 
 int pepe_release(struct inode *inode, struct file *filp)
@@ -208,8 +200,8 @@ static int __init pepe_init(void)
 
 	printk(KERN_WARNING PEPE_MODULE_NAME " loaded.\n");
 	printk(KERN_DEBUG
-	       "pepe ioctl command PEPE_IOCTL_CMD_IS_WEDNESDAY: 0x%08lx.\n",
-	       PEPE_IOCTL_CMD_IS_WEDNESDAY);
+	       "pepe ioctl command PEPE_IOCTL_CMD_WEEK_DAY: 0x%08lx.\n",
+	       PEPE_IOCTL_CMD_WEEK_DAY);
 	printk(KERN_DEBUG "pepe call: %s().\n", __FUNCTION__);
 
 	// Dynamically allocate device number

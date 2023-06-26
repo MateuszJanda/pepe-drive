@@ -3,6 +3,7 @@
 #include <linux/cdev.h>
 #include <linux/fs.h>
 #include <linux/time.h>
+#include <linux/ioctl.h>
 
 #include "data.h"
 
@@ -12,6 +13,10 @@ MODULE_DESCRIPTION("A simple Linux driver for in-memory char device.");
 
 #define PEPE_MODULE_NAME "pepe"
 #define PEPE_NUM_OF_DEVS 1
+
+#define PEPE_IOCTL_IOC_MAGIC 'k'
+#define PEPE_IOCTL_CMD_IS_WEDNESDAY _IOR(PEPE_IOCTL_IOC_MAGIC, 0, int)
+#define PEPE_IOCTL_MAXNR 0
 
 static int pepe_major = 0;
 static int pepe_minor = 0;
@@ -44,7 +49,7 @@ static int pepe_check_day(char *buffer, const struct kernel_param *kp)
 		len = snprintf(buffer, PAGE_SIZE, "Not Wednesday, pepe sad.\n");
 	}
 
-	// Plus terminating null character
+	// Plus 1 for terminating null character
 	return len < PAGE_SIZE ? len + 1 : -EINVAL;
 }
 
@@ -59,7 +64,7 @@ int pepe_open(struct inode *inode, struct file *filp)
 		container_of(inode->i_cdev, struct pepe_dev, cdev);
 	filp->private_data = dev;
 
-	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s().\n", __FUNCTION__);
 
 	// Nothing else is needed, pepe is read only device
 	return 0;
@@ -72,10 +77,12 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 	ssize_t retval = 0;
 
 	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
-	printk(KERN_DEBUG "pepe_read() requested, f_pos = %lld, count = %lu\n",
+	printk(KERN_DEBUG "pepe_read() requested, f_pos = %lld, count = %lu.\n",
 	       *f_pos, count);
 
 	if (mutex_lock_interruptible(&dev->mutex)) {
+		printk(KERN_DEBUG
+		       "Error: mutex_lock_interruptible() unable to set.\n");
 		return -ERESTARTSYS;
 	}
 
@@ -90,6 +97,7 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 	}
 
 	if (copy_to_user(buff, pepe_data + *f_pos, count)) {
+		printk(KERN_DEBUG "Error: copy_to_user().\n");
 		retval = -EFAULT;
 		goto fail_copy_to_user;
 	}
@@ -99,16 +107,50 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 
 end_of_file:
 fail_copy_to_user:
-	printk(KERN_DEBUG "pepe_read() delivered, f_pos = %lld, count = %lu\n",
+	printk(KERN_DEBUG "pepe_read() delivered, f_pos = %lld, count = %lu.\n",
 	       *f_pos, count);
 
 	mutex_unlock(&dev->mutex);
 	return retval;
 }
 
+long pepe_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	long retval = 0;
+
+	struct timespec64 now;
+	struct tm time;
+
+	printk(KERN_DEBUG "pepe call: %s().\n", __FUNCTION__);
+
+	if (_IOC_TYPE(cmd) != PEPE_IOCTL_IOC_MAGIC) {
+		printk(KERN_DEBUG
+		       "Error: command %d with incorrect magic number.\n",
+		       cmd);
+		return -ENOTTY;
+	}
+
+	if (_IOC_NR(cmd) > PEPE_IOCTL_MAXNR) {
+		printk(KERN_DEBUG "Error: command %d above max number.\n", cmd);
+		return -ENOTTY;
+	}
+
+	if (cmd == PEPE_IOCTL_CMD_IS_WEDNESDAY) {
+		ktime_get_real_ts64(&now);
+		time64_to_tm(now.tv_sec, 0, &time);
+		if (time.tm_wday == 3) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+
+	return retval;
+}
+
 int pepe_release(struct inode *inode, struct file *filp)
 {
-	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s().\n", __FUNCTION__);
 
 	// No hardware to shut down
 	return 0;
@@ -118,13 +160,14 @@ static struct file_operations pepe_fops = {
 	.owner = THIS_MODULE,
 	.open = pepe_open,
 	.read = pepe_read,
+	.unlocked_ioctl = pepe_ioctl,
 	.release = pepe_release,
 };
 
 static void __init peep_fail_cleanup(void)
 {
 	dev_t dev_num = 0;
-	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s().\n", __FUNCTION__);
 
 	// Deallocated device resources.
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
@@ -143,7 +186,7 @@ static void __init peep_fail_cleanup(void)
 
 static void __init pepe_setup_dev(struct pepe_dev *dev)
 {
-	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s().\n", __FUNCTION__);
 	mutex_init(&dev->mutex);
 
 	// Setup char dev
@@ -158,8 +201,8 @@ static int __init pepe_init(void)
 	bool fail_cdev_add = false;
 	dev_t dev_num = 0;
 
-	printk(KERN_WARNING PEPE_MODULE_NAME " loaded\n");
-	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_WARNING PEPE_MODULE_NAME " loaded.\n");
+	printk(KERN_DEBUG "pepe call: %s().\n", __FUNCTION__);
 
 	// Dynamically allocate device number
 	err = alloc_chrdev_region(&dev_num, pepe_minor, PEPE_NUM_OF_DEVS,
@@ -167,7 +210,7 @@ static int __init pepe_init(void)
 
 	if (err < 0) {
 		printk(KERN_DEBUG
-		       "Error(%d): alloc_chrdev_region() failed on pepe\n",
+		       "Error(%d): alloc_chrdev_region() failed on pepe.\n",
 		       err);
 		goto fail;
 	}
@@ -179,7 +222,7 @@ static int __init pepe_init(void)
 		pepe_devs[i] = kmalloc(sizeof(struct pepe_dev), GFP_KERNEL);
 		if (pepe_devs[i] == NULL) {
 			printk(KERN_DEBUG
-			       "Error(%d): kmalloc() failed on pepe%d\n",
+			       "Error(%d): kmalloc() failed on pepe%d.\n",
 			       err, i);
 			fail_kmalloc = true;
 			break;
@@ -191,8 +234,8 @@ static int __init pepe_init(void)
 		dev_num = MKDEV(pepe_major, pepe_minor + i);
 		err = cdev_add(&pepe_devs[i]->cdev, dev_num, 1);
 		if (err < 0) {
-			printk(KERN_DEBUG "Error(%d): Adding %s%d error\n", err,
-			       PEPE_MODULE_NAME, i);
+			printk(KERN_DEBUG "Error(%d): Adding %s%d error.\n",
+			       err, PEPE_MODULE_NAME, i);
 			kfree(pepe_devs[i]);
 			pepe_devs[i] = NULL;
 			fail_cdev_add = true;
@@ -215,7 +258,7 @@ static void __exit pepe_exit(void)
 {
 	dev_t dev_num = MKDEV(pepe_major, pepe_minor);
 
-	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s().\n", __FUNCTION__);
 
 	// Deallocated device resources
 	for (int i = 0; i < PEPE_NUM_OF_DEVS; i++) {
@@ -225,7 +268,7 @@ static void __exit pepe_exit(void)
 
 	// Unregister char device number
 	unregister_chrdev_region(dev_num, PEPE_NUM_OF_DEVS);
-	printk(KERN_WARNING PEPE_MODULE_NAME " unloaded\n");
+	printk(KERN_WARNING PEPE_MODULE_NAME " unloaded.\n");
 }
 
 // Parameter (/sys/module/pepe/parameters/wednesday)

@@ -76,7 +76,7 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 	struct pepe_dev *dev = filp->private_data;
 	ssize_t retval = 0;
 
-	printk(KERN_DEBUG "pepe call: %s()\n", __FUNCTION__);
+	printk(KERN_DEBUG "pepe call: %s().\n", __FUNCTION__);
 	printk(KERN_DEBUG "pepe_read() requested, f_pos = %lld, count = %lu.\n",
 	       *f_pos, count);
 
@@ -87,6 +87,7 @@ ssize_t pepe_read(struct file *filp, char __user *buff, size_t count,
 	}
 
 	if (*f_pos >= sizeof(pepe_data)) {
+		printk(KERN_DEBUG "Error: f_pos it to big.\n");
 		retval = 0;
 		count = 0;
 		goto end_of_file;
@@ -139,8 +140,12 @@ long pepe_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		ktime_get_real_ts64(&now);
 		time64_to_tm(now.tv_sec, 0, &time);
 		if (time.tm_wday == 3) {
+			printk(KERN_DEBUG
+			       "pepe PEPE_IOCTL_CMD_IS_WEDNESDAY 1 (True).\n");
 			return 1;
 		} else {
+			printk(KERN_DEBUG
+			       "pepe PEPE_IOCTL_CMD_IS_WEDNESDAY 0 (False).\n");
 			return 0;
 		}
 	}
@@ -202,6 +207,9 @@ static int __init pepe_init(void)
 	dev_t dev_num = 0;
 
 	printk(KERN_WARNING PEPE_MODULE_NAME " loaded.\n");
+	printk(KERN_DEBUG
+	       "pepe ioctl command PEPE_IOCTL_CMD_IS_WEDNESDAY: 0x%08lx.\n",
+	       PEPE_IOCTL_CMD_IS_WEDNESDAY);
 	printk(KERN_DEBUG "pepe call: %s().\n", __FUNCTION__);
 
 	// Dynamically allocate device number
